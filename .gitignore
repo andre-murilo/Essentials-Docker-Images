@@ -1,0 +1,8 @@
+storage/jenkins/*
+storage/jupyter/*
+storage/kuma/*
+storage/mongo/*
+storage/mysql/*
+storage/rabbitmq/data/*
+storage/rabbitmq/log/*
+storage/redis/*
