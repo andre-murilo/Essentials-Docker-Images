@@ -1,0 +1,134 @@
+version: '3'
+services:
+  # ------ Databases ------
+  # MySQL
+  mysql_db:
+    image: mysql
+    container_name: "MySQL"
+    hostname: "mysql"
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: '123456'
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+    networks:
+      - bridgenet
+  
+  # MongoDB
+  mongo:
+    image: mongo
+    container_name: "MongoDB"
+    hostname: "mongodb"
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+    volumes:
+      - ./storage/mongo:/data/db
+    networks:
+      - bridgenet
+    
+  # Redis
+  redis:
+    image: redis
+    container_name: "Redis"
+    hostname: "redis"
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass Redis2019!
+    volumes:
+      - ./storage/redis:/data
+    networks:
+      - bridgenet
+
+  # ------ Databases - Web Tools ------
+  # Adminer - Relational Database Web Tool
+  adminer:
+    image: adminer
+    container_name: "Adminer"
+    hostname: "adminer"
+    ports:
+      - "8081:8080"
+    networks:
+      - bridgenet
+
+  # MongoExpress - Mongo Database Web Tool
+  mongo-express:
+    image: mongo-express
+    container_name: "MongoExpress"
+    hostname: "mongo_express"
+    ports:
+      - "8082:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: 123456
+      ME_CONFIG_MONGODB_URL: mongodb://root:123456@mongo:27017/
+    networks:
+      - bridgenet
+
+  # ------ Messaging Protocol ------
+  # RabbitMQ : Middleware Broker Messaging
+  rabbitmq:
+    image: rabbitmq
+    container_name: "RabbitMQ"
+    hostname: "rabbitmq"
+    ports:
+      - "10673:5672"
+      - "15672:15672"
+    volumes:
+      - ./storage/rabbitmq/data/:/var/lib/rabbitmq/
+      - ./storage/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - bridgenet
+
+  # ------ CI & CD ------
+  # Jenkins: Automatize compiles
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: "jenkis"
+    hostname: "jenkins"
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - ./storage/jenkins/:/var/jenkins_home
+    networks:
+      - bridgenet
+
+  # ------ Python Lab ------
+  # Jupyter Lab: A Web Tools for Python Notepad
+  jupyter-lab:
+    image: jupyter/minimal-notebook
+    container_name: "jupyter-lab"
+    hostname: "jupyter_lab"
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - ./storage/jupyter:/work
+    working_dir: /work
+    networks:
+      - bridgenet
+  
+  # ------ Monitoring Services - Uptime ------
+  # Uptime Kuma: You can easily create dashboards measuring the uptime of critical services.
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: "uptime-kuma"
+    hostname: "uptime_kuma"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./storage/kuma:/app/data
+    networks:
+      - bridgenet
+      
+
+networks:
+  bridgenet:
+    name: bridgenet
+    driver: bridge
